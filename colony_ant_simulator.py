@@ -7,7 +7,7 @@ import argparse
 from copy import copy
 from random import choice, randrange, randint
 from coloraide import Color
-from tkinter import *
+from tkinter import Tk, Canvas, StringVar, Label
 import tomllib
 
 # Load configuration
@@ -23,8 +23,7 @@ e_h = _CONFIG_['environment']['height']
 pheromones = []  # list that contains all pheromone objects in the environment
 
 STEP_SIZE = _CONFIG_['ant']['stepsize']
-STEP_GRID = ut.cp((-1*STEP_SIZE,0,STEP_SIZE),(-1*STEP_SIZE,0,STEP_SIZE))
-STEP_GRID.remove((0,0))
+STEP_GRID = [(dx, dy) for dx in (-STEP_SIZE, 0, STEP_SIZE) for dy in (-STEP_SIZE, 0, STEP_SIZE) if not (dx == 0 and dy == 0)]
 
 # All possible combinations of movement for an ant are in this list
 move_tab = STEP_GRID
@@ -100,7 +99,7 @@ class Ant:
         """
         self.canvas.delete(self.display)
     
-    def set_energy(self, value=0, minus=0, plus=0):
+    def set_energy(self, value=0, minus=0.0, plus=0.0):
         if value != 0:
             self.energy = value
         elif minus != 0:
@@ -170,7 +169,7 @@ class Environment:
 
         # Initiates the movement of ants in the environment after the creation of the environment
         self.environment.after(
-            1, self.move_forever())
+            1, self.move_forever)
         self.root.mainloop()
 
     def move_forever(self):
@@ -316,12 +315,12 @@ def circle(x, y, radius, canvas, color):
     return canvas.create_oval(x - radius, y - radius, x + radius, y + radius, fill=color, outline='')
 
 def get_food_colour(food_life):
-    """translates an food life (100...0) int to a tkinter-friendly color code
-    """
-    return Color.interpolate([
+    """translates a food life (100...0) int to a tkinter-friendly color code"""
+    color = Color.interpolate([
         _CONFIG_['graphics']['food']['ini_colour'],
         _CONFIG_['graphics']['environment']['backgroundcolour']
-    ])((100-food_life)/100).to_string(hex=True)
+    ])((100-food_life)/100)
+    return color.convert('srgb').to_string(hex=True)
 
 def dont_out(ant):
     """prevents ants from leaving the environment
